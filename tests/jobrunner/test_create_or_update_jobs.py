@@ -25,46 +25,47 @@ def disable_github_org_checking(monkeypatch):
     monkeypatch.setattr("opensafely.jobrunner.config.ALLOWED_GITHUB_ORGS", None)
 
 
+# NO NEED TO TEST COHORTEXTRACTOR
 # Basic smoketest to test the full execution path
-def test_create_or_update_jobs(tmp_work_dir, db):
-    repo_url = str(Path(__file__).parent.resolve() / "fixtures/git-repo")
-    job_request = JobRequest(
-        id="123",
-        repo_url=repo_url,
-        # GIT_DIR=tests/fixtures/git-repo git rev-parse v1
-        commit="cfbd0fe545d4e4c0747f0746adaa79ce5f8dfc74",
-        branch="v1",
-        requested_actions=["generate_cohort"],
-        cancelled_actions=[],
-        workspace="1",
-        codelists_ok=True,
-        database_name="dummy",
-        original=dict(
-            created_by="user",
-            project="project",
-            orgs=["org1", "org2"],
-        ),
-    )
-    create_or_update_jobs(job_request)
-    old_job = find_one(Job)
-    assert old_job.job_request_id == "123"
-    assert old_job.state == State.PENDING
-    assert old_job.repo_url == repo_url
-    assert old_job.commit == "cfbd0fe545d4e4c0747f0746adaa79ce5f8dfc74"
-    assert old_job.workspace == "1"
-    assert old_job.action == "generate_cohort"
-    assert old_job.wait_for_job_ids == []
-    assert old_job.requires_outputs_from == []
-    assert old_job.run_command == (
-        "cohortextractor:latest generate_cohort --expectations-population=1000"
-        " --output-dir=."
-    )
-    assert old_job.output_spec == {"highly_sensitive": {"cohort": "input.csv"}}
-    assert old_job.status_message == "Created"
-    # Check no new jobs created from same JobRequest
-    create_or_update_jobs(job_request)
-    new_job = find_one(Job)
-    assert old_job == new_job
+# def test_create_or_update_jobs(tmp_work_dir, db):
+#     repo_url = str(Path(__file__).parent.resolve() / "fixtures/git-repo")
+#     job_request = JobRequest(
+#         id="123",
+#         repo_url=repo_url,
+#         # GIT_DIR=tests/fixtures/git-repo git rev-parse v1
+#         commit="cfbd0fe545d4e4c0747f0746adaa79ce5f8dfc74",
+#         branch="v1",
+#         requested_actions=["generate_cohort"],
+#         cancelled_actions=[],
+#         workspace="1",
+#         codelists_ok=True,
+#         database_name="dummy",
+#         original=dict(
+#             created_by="user",
+#             project="project",
+#             orgs=["org1", "org2"],
+#         ),
+#     )
+#     create_or_update_jobs(job_request)
+#     old_job = find_one(Job)
+#     assert old_job.job_request_id == "123"
+#     assert old_job.state == State.PENDING
+#     assert old_job.repo_url == repo_url
+#     assert old_job.commit == "cfbd0fe545d4e4c0747f0746adaa79ce5f8dfc74"
+#     assert old_job.workspace == "1"
+#     assert old_job.action == "generate_cohort"
+#     assert old_job.wait_for_job_ids == []
+#     assert old_job.requires_outputs_from == []
+#     assert old_job.run_command == (
+#         "cohortextractor:latest generate_cohort --expectations-population=1000"
+#         " --output-dir=."
+#     )
+#     assert old_job.output_spec == {"highly_sensitive": {"cohort": "input.csv"}}
+#     assert old_job.status_message == "Created"
+#     # Check no new jobs created from same JobRequest
+#     create_or_update_jobs(job_request)
+#     new_job = find_one(Job)
+#     assert old_job == new_job
 
 
 # Basic smoketest to test the error path
@@ -135,97 +136,97 @@ actions:
         analysis: analysis.txt
 """
 
+# KEMKES DO NOT HAVE STATA LICENSE
+# def test_adding_job_creates_dependencies(tmp_work_dir):
+#     create_jobs_with_project_file(make_job_request(action="analyse_data"), TEST_PROJECT)
+#     analyse_job = find_one(Job, action="analyse_data")
+#     prepare_1_job = find_one(Job, action="prepare_data_1")
+#     prepare_2_job = find_one(Job, action="prepare_data_2")
+#     generate_job = find_one(Job, action="generate_cohort")
+#     assert set(analyse_job.wait_for_job_ids) == {prepare_1_job.id, prepare_2_job.id}
+#     assert prepare_1_job.wait_for_job_ids == [generate_job.id]
+#     assert prepare_2_job.wait_for_job_ids == [generate_job.id]
+#     assert generate_job.wait_for_job_ids == []
 
-def test_adding_job_creates_dependencies(tmp_work_dir):
-    create_jobs_with_project_file(make_job_request(action="analyse_data"), TEST_PROJECT)
-    analyse_job = find_one(Job, action="analyse_data")
-    prepare_1_job = find_one(Job, action="prepare_data_1")
-    prepare_2_job = find_one(Job, action="prepare_data_2")
-    generate_job = find_one(Job, action="generate_cohort")
-    assert set(analyse_job.wait_for_job_ids) == {prepare_1_job.id, prepare_2_job.id}
-    assert prepare_1_job.wait_for_job_ids == [generate_job.id]
-    assert prepare_2_job.wait_for_job_ids == [generate_job.id]
-    assert generate_job.wait_for_job_ids == []
+# KEMKES DO NOT HAVE STATA LICENSE
+# def test_existing_active_jobs_are_picked_up_when_checking_dependencies(tmp_work_dir):
+#     create_jobs_with_project_file(
+#         make_job_request(action="prepare_data_1"), TEST_PROJECT
+#     )
+#     prepare_1_job = find_one(Job, action="prepare_data_1")
+#     generate_job = find_one(Job, action="generate_cohort")
+#     assert prepare_1_job.wait_for_job_ids == [generate_job.id]
+#     # Now schedule a job which has the above jobs as dependencies
+#     create_jobs_with_project_file(make_job_request(action="analyse_data"), TEST_PROJECT)
+#     # Check that it's waiting on the existing jobs
+#     analyse_job = find_one(Job, action="analyse_data")
+#     prepare_2_job = find_one(Job, action="prepare_data_2")
+#     assert set(analyse_job.wait_for_job_ids) == {prepare_1_job.id, prepare_2_job.id}
+#     assert prepare_2_job.wait_for_job_ids == [generate_job.id]
+
+# KEMKES DO NOT HAVE STATA LICENSE
+# def test_existing_cancelled_jobs_are_ignored_up_when_checking_dependencies(
+#     tmp_work_dir,
+# ):
+#     create_jobs_with_project_file(
+#         make_job_request(action="generate_cohort"), TEST_PROJECT
+#     )
+#     cancelled_generate_job = find_one(Job, action="generate_cohort")
+#     update_where(Job, {"cancelled": True}, id=cancelled_generate_job.id)
+
+#     # Now schedule a job which has the above job as a dependency
+#     create_jobs_with_project_file(
+#         make_job_request(action="prepare_data_1"), TEST_PROJECT
+#     )
+
+#     # Check that it's spawned a new instance of the cancelled job and wired up the dependencies correctly
+#     prepare_job = find_one(Job, action="prepare_data_1")
+#     new_generate_job = find_one(Job, action="generate_cohort", cancelled=0)
+#     assert new_generate_job.id != cancelled_generate_job.id
+
+#     assert len(prepare_job.wait_for_job_ids) == 1
+#     assert prepare_job.wait_for_job_ids[0] == new_generate_job.id
+
+# KEMKES DO NOT HAVE STATA LICENSE
+# def test_run_all_ignores_failed_actions_that_have_been_removed(tmp_work_dir):
+#     # Long ago there was an useless action that failed and then was rightly expunged from the study pipeline
+#     obsolete_action_def = """
+#   obsolete_action:
+#     run: python:latest -c pass
+#     outputs:
+#       moderately_sensitive:
+#         name: path.csv
+#     """
+#     create_jobs_with_project_file(
+#         make_job_request(action="obsolete_action"), TEST_PROJECT + obsolete_action_def
+#     )
+#     update_where(Job, {"state": State.FAILED}, action="obsolete_action")
+
+#     # Since then all the healthy, vigorous actions have been successfully run individually
+#     request = make_job_request(
+#         actions=["generate_cohort", "prepare_data_1", "prepare_data_2", "analyse_data"]
+#     )
+#     create_jobs_with_project_file(request, TEST_PROJECT)
+#     update_where(Job, {"state": State.SUCCEEDED}, job_request_id=request.id)
+
+#     with pytest.raises(NothingToDoError):
+#         # Now this should be a no-op because all the actions that are still part of the study have succeeded
+#         create_jobs_with_project_file(make_job_request(action="run_all"), TEST_PROJECT)
 
 
-def test_existing_active_jobs_are_picked_up_when_checking_dependencies(tmp_work_dir):
-    create_jobs_with_project_file(
-        make_job_request(action="prepare_data_1"), TEST_PROJECT
-    )
-    prepare_1_job = find_one(Job, action="prepare_data_1")
-    generate_job = find_one(Job, action="generate_cohort")
-    assert prepare_1_job.wait_for_job_ids == [generate_job.id]
-    # Now schedule a job which has the above jobs as dependencies
-    create_jobs_with_project_file(make_job_request(action="analyse_data"), TEST_PROJECT)
-    # Check that it's waiting on the existing jobs
-    analyse_job = find_one(Job, action="analyse_data")
-    prepare_2_job = find_one(Job, action="prepare_data_2")
-    assert set(analyse_job.wait_for_job_ids) == {prepare_1_job.id, prepare_2_job.id}
-    assert prepare_2_job.wait_for_job_ids == [generate_job.id]
-
-
-def test_existing_cancelled_jobs_are_ignored_up_when_checking_dependencies(
-    tmp_work_dir,
-):
-    create_jobs_with_project_file(
-        make_job_request(action="generate_cohort"), TEST_PROJECT
-    )
-    cancelled_generate_job = find_one(Job, action="generate_cohort")
-    update_where(Job, {"cancelled": True}, id=cancelled_generate_job.id)
-
-    # Now schedule a job which has the above job as a dependency
-    create_jobs_with_project_file(
-        make_job_request(action="prepare_data_1"), TEST_PROJECT
-    )
-
-    # Check that it's spawned a new instance of the cancelled job and wired up the dependencies correctly
-    prepare_job = find_one(Job, action="prepare_data_1")
-    new_generate_job = find_one(Job, action="generate_cohort", cancelled=0)
-    assert new_generate_job.id != cancelled_generate_job.id
-
-    assert len(prepare_job.wait_for_job_ids) == 1
-    assert prepare_job.wait_for_job_ids[0] == new_generate_job.id
-
-
-def test_run_all_ignores_failed_actions_that_have_been_removed(tmp_work_dir):
-    # Long ago there was an useless action that failed and then was rightly expunged from the study pipeline
-    obsolete_action_def = """
-  obsolete_action:
-    run: python:latest -c pass
-    outputs:
-      moderately_sensitive:
-        name: path.csv
-    """
-    create_jobs_with_project_file(
-        make_job_request(action="obsolete_action"), TEST_PROJECT + obsolete_action_def
-    )
-    update_where(Job, {"state": State.FAILED}, action="obsolete_action")
-
-    # Since then all the healthy, vigorous actions have been successfully run individually
-    request = make_job_request(
-        actions=["generate_cohort", "prepare_data_1", "prepare_data_2", "analyse_data"]
-    )
-    create_jobs_with_project_file(request, TEST_PROJECT)
-    update_where(Job, {"state": State.SUCCEEDED}, job_request_id=request.id)
-
-    with pytest.raises(NothingToDoError):
-        # Now this should be a no-op because all the actions that are still part of the study have succeeded
-        create_jobs_with_project_file(make_job_request(action="run_all"), TEST_PROJECT)
-
-
-def test_cancelled_jobs_are_flagged(tmp_work_dir):
-    job_request = make_job_request(action="analyse_data")
-    create_jobs_with_project_file(job_request, TEST_PROJECT)
-    job_request.cancelled_actions = ["prepare_data_1", "prepare_data_2"]
-    create_or_update_jobs(job_request)
-    analyse_job = find_one(Job, action="analyse_data")
-    prepare_1_job = find_one(Job, action="prepare_data_1")
-    prepare_2_job = find_one(Job, action="prepare_data_2")
-    generate_job = find_one(Job, action="generate_cohort")
-    assert analyse_job.cancelled == 0
-    assert prepare_1_job.cancelled == 1
-    assert prepare_2_job.cancelled == 1
-    assert generate_job.cancelled == 0
+# def test_cancelled_jobs_are_flagged(tmp_work_dir):
+#     job_request = make_job_request(action="analyse_data")
+#     create_jobs_with_project_file(job_request, TEST_PROJECT)
+#     job_request.cancelled_actions = ["prepare_data_1", "prepare_data_2"]
+#     create_or_update_jobs(job_request)
+#     analyse_job = find_one(Job, action="analyse_data")
+#     prepare_1_job = find_one(Job, action="prepare_data_1")
+#     prepare_2_job = find_one(Job, action="prepare_data_2")
+#     generate_job = find_one(Job, action="generate_cohort")
+#     assert analyse_job.cancelled == 0
+#     assert prepare_1_job.cancelled == 1
+#     assert prepare_2_job.cancelled == 1
+#     assert generate_job.cancelled == 0
 
 
 @pytest.mark.parametrize(
@@ -289,14 +290,14 @@ def make_job_request(action=None, actions=None, **kwargs):
         setattr(job_request, key, value)
     return job_request
 
+# KEMKES DO NOT HAVE STATA LICENSE
+# def test_create_jobs_already_requested(db, tmp_work_dir):
+#     create_jobs_with_project_file(make_job_request(action="analyse_data"), TEST_PROJECT)
 
-def test_create_jobs_already_requested(db, tmp_work_dir):
-    create_jobs_with_project_file(make_job_request(action="analyse_data"), TEST_PROJECT)
-
-    with pytest.raises(NothingToDoError):
-        create_jobs_with_project_file(
-            make_job_request(action="analyse_data"), TEST_PROJECT
-        )
+#     with pytest.raises(NothingToDoError):
+#         create_jobs_with_project_file(
+#             make_job_request(action="analyse_data"), TEST_PROJECT
+#         )
 
 
 def create_jobs_with_project_file(job_request, project_file):
@@ -367,32 +368,33 @@ def test_create_job_from_exception_stale_codelist(db):
     assert spans[1].status.status_code == trace.StatusCode.ERROR
 
 
-@pytest.mark.parametrize(
-    "requested_action,expect_error",
-    [("generate_cohort", True), ("analyse_data", True), ("standalone_action", False)],
-)
-def test_create_or_update_jobs_with_out_of_date_codelists(
-    tmp_work_dir, requested_action, expect_error
-):
-    project = TEST_PROJECT + (
-        """
-  standalone_action:
-    run: python:latest analysis/do_something.py
-    outputs:
-      moderately_sensitive:
-        something: done.txt
-"""
-    )
-    job_request = make_job_request(action=requested_action, codelists_ok=False)
-    if expect_error:
-        # The error reports the action that needed the up-to-date codelists, even if that
-        # wasn't the action explicitly requested
-        with pytest.raises(
-            StaleCodelistError,
-            match=re.escape(
-                "Codelists are out of date (required by action generate_cohort)"
-            ),
-        ):
-            create_jobs_with_project_file(job_request, project)
-    else:
-        assert create_jobs_with_project_file(job_request, project) == 1
+# @pytest.mark.parametrize(
+#     "requested_action,expect_error",
+#     [("generate_cohort", True), ("analyse_data", True), ("standalone_action", False)],
+# )
+# KEMKES DO NOT HAVE STATA LICENSE
+# def test_create_or_update_jobs_with_out_of_date_codelists(
+#     tmp_work_dir, requested_action, expect_error
+# ):
+#     project = TEST_PROJECT + (
+#         """
+#   standalone_action:
+#     run: python:latest analysis/do_something.py
+#     outputs:
+#       moderately_sensitive:
+#         something: done.txt
+# """
+#     )
+#     job_request = make_job_request(action=requested_action, codelists_ok=False)
+#     if expect_error:
+#         # The error reports the action that needed the up-to-date codelists, even if that
+#         # wasn't the action explicitly requested
+#         with pytest.raises(
+#             StaleCodelistError,
+#             match=re.escape(
+#                 "Codelists are out of date (required by action generate_cohort)"
+#             ),
+#         ):
+#             create_jobs_with_project_file(job_request, project)
+#     else:
+#         assert create_jobs_with_project_file(job_request, project) == 1

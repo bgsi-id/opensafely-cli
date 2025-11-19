@@ -40,7 +40,7 @@ def job_definition(request, test_repo):
         workspace="test",
         action="action",
         created_at=int(time.time()),
-        image="ghcr.io/opensafely-core/busybox",
+        image="busybox",
         args=["true"],
         inputs=[],
         env={},

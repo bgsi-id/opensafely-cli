@@ -77,17 +77,17 @@ else:
     USING_DUMMY_DATA_BACKEND = BACKEND == "expectations"
 
 ALLOWED_IMAGES = {
-    "cohortextractor",
-    "databuilder",
+    # "cohortextractor",
+    # "databuilder",
     "ehrql",
-    "stata-mp",
+    # "stata-mp",
     "r",
     "jupyter",
     "python",
-    "sqlrunner",
+    # "sqlrunner",
 }
 
-DOCKER_REGISTRY = os.environ.get("DOCKER_REGISTRY", "ghcr.io/opensafely-core")
+DOCKER_REGISTRY = os.environ.get("DOCKER_REGISTRY", "624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely")
 
 
 def database_urls_from_env(env):
@@ -166,7 +166,7 @@ ALLOWED_GITHUB_ORGS = (
 # We hardcode this for now, as from a security perspective, we do not want it
 # to be run time configurable. Though we do override this in `local_run.py` as
 # we don't want to push traffic via the proxy when running locally.
-GIT_PROXY_DOMAIN = "github-proxy.opensafely.org"
+GIT_PROXY_DOMAIN = "github.com"
 
 
 def parse_job_resource_weights(config_file):

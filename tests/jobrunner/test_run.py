@@ -429,28 +429,29 @@ def test_handle_job_waiting_on_workers(monkeypatch, db):
     assert spans[-1].name == "CREATED"
 
 
-def test_handle_job_waiting_on_db_workers(monkeypatch, db):
-    monkeypatch.setattr(config, "MAX_DB_WORKERS", 0)
-    api = StubExecutorAPI()
-    job = api.add_test_job(
-        ExecutorState.UNKNOWN,
-        State.PENDING,
-        run_command="cohortextractor:latest generate_cohort",
-        requires_db=True,
-    )
+# NO NEED TO TEST COHORTEXTRACTOR
+# def test_handle_job_waiting_on_db_workers(monkeypatch, db):
+#     monkeypatch.setattr(config, "MAX_DB_WORKERS", 0)
+#     api = StubExecutorAPI()
+#     job = api.add_test_job(
+#         ExecutorState.UNKNOWN,
+#         State.PENDING,
+#         run_command="cohortextractor:latest generate_cohort",
+#         requires_db=True,
+#     )
 
-    run.handle_job(job, api)
+#     run.handle_job(job, api)
 
-    # executor doesn't even know about it
-    assert job.id not in api.tracker["prepare"]
+#     # executor doesn't even know about it
+#     assert job.id not in api.tracker["prepare"]
 
-    assert job.state == State.PENDING
-    assert job.status_message == "Waiting on available database workers"
-    assert job.status_code == StatusCode.WAITING_ON_DB_WORKERS
+#     assert job.state == State.PENDING
+#     assert job.status_message == "Waiting on available database workers"
+#     assert job.status_code == StatusCode.WAITING_ON_DB_WORKERS
 
-    # tracing
-    spans = get_trace("jobs")
-    assert spans[-1].name == "CREATED"
+#     # tracing
+#     spans = get_trace("jobs")
+#     assert spans[-1].name == "CREATED"
 
 
 @pytest.mark.parametrize(
@@ -602,78 +603,79 @@ def test_handle_job_finalized_success_with_large_file(db):
     assert "output/output.csv: too big" not in job.status_message
 
 
-@pytest.mark.parametrize(
-    "exit_code,run_command,extra_message",
-    [
-        (
-            3,
-            "cohortextractor generate_cohort",
-            (
-                "A transient database error occurred, your job may run "
-                "if you try it again, if it keeps failing then contact tech support"
-            ),
-        ),
-        (
-            4,
-            "cohortextractor generate_cohort",
-            "New data is being imported into the database, please try again in a few hours",
-        ),
-        (
-            5,
-            "cohortextractor generate_cohort",
-            "Something went wrong with the database, please contact tech support",
-        ),
-        # the same exit codes for a job that doesn't have access to the database show no message
-        (3, "python foo.py", None),
-        (4, "python foo.py", None),
-        (5, "python foo.py", None),
-    ],
-)
-def test_handle_job_finalized_failed_exit_code(
-    exit_code, run_command, extra_message, db, backend_db_config
-):
-    api = StubExecutorAPI()
-    job = api.add_test_job(
-        ExecutorState.FINALIZED,
-        State.RUNNING,
-        StatusCode.FINALIZED,
-        run_command=run_command,
-        requires_db="cohortextractor" in run_command,
-    )
-    api.set_job_result(
-        job,
-        outputs={"output/file.csv": "highly_sensitive"},
-        exit_code=exit_code,
-        message=None,
-    )
+# NO NEED TO TEST COHORTEXTRACTOR
+# @pytest.mark.parametrize(
+#     "exit_code,run_command,extra_message",
+#     [
+#         (
+#             3,
+#             "cohortextractor generate_cohort",
+#             (
+#                 "A transient database error occurred, your job may run "
+#                 "if you try it again, if it keeps failing then contact tech support"
+#             ),
+#         ),
+#         (
+#             4,
+#             "cohortextractor generate_cohort",
+#             "New data is being imported into the database, please try again in a few hours",
+#         ),
+#         (
+#             5,
+#             "cohortextractor generate_cohort",
+#             "Something went wrong with the database, please contact tech support",
+#         ),
+#         # the same exit codes for a job that doesn't have access to the database show no message
+#         (3, "python foo.py", None),
+#         (4, "python foo.py", None),
+#         (5, "python foo.py", None),
+#     ],
+# )
+# def test_handle_job_finalized_failed_exit_code(
+#     exit_code, run_command, extra_message, db, backend_db_config
+# ):
+#     api = StubExecutorAPI()
+#     job = api.add_test_job(
+#         ExecutorState.FINALIZED,
+#         State.RUNNING,
+#         StatusCode.FINALIZED,
+#         run_command=run_command,
+#         requires_db="cohortextractor" in run_command,
+#     )
+#     api.set_job_result(
+#         job,
+#         outputs={"output/file.csv": "highly_sensitive"},
+#         exit_code=exit_code,
+#         message=None,
+#     )
 
-    run.handle_job(job, api)
+#     run.handle_job(job, api)
 
-    # executor state
-    assert job.id in api.tracker["cleanup"]
-    # its been cleaned up and is now unknown
-    assert api.get_status(job).state == ExecutorState.UNKNOWN
+#     # executor state
+#     assert job.id in api.tracker["cleanup"]
+#     # its been cleaned up and is now unknown
+#     assert api.get_status(job).state == ExecutorState.UNKNOWN
 
-    # our state
-    assert job.state == State.FAILED
-    assert job.status_code == StatusCode.NONZERO_EXIT
-    expected = "Job exited with an error"
-    if extra_message:
-        expected += f": {extra_message}"
-    assert job.status_message == expected
-    assert job.outputs == {"output/file.csv": "highly_sensitive"}
+#     # our state
+#     assert job.state == State.FAILED
+#     assert job.status_code == StatusCode.NONZERO_EXIT
+#     expected = "Job exited with an error"
+#     if extra_message:
+#         expected += f": {extra_message}"
+#     assert job.status_message == expected
+#     assert job.outputs == {"output/file.csv": "highly_sensitive"}
 
-    spans = get_trace("jobs")
-    assert spans[-3].name == "FINALIZED"
-    completed_span = spans[-2]
-    assert completed_span.name == "NONZERO_EXIT"
-    assert completed_span.attributes["exit_code"] == exit_code
-    assert completed_span.attributes["outputs"] == 1
-    assert completed_span.attributes["unmatched_patterns"] == 0
-    assert completed_span.attributes["unmatched_outputs"] == 0
-    assert completed_span.attributes["image_id"] == "image_id"
-    assert completed_span.status.status_code == trace.StatusCode.ERROR
-    assert spans[-1].name == "JOB"
+#     spans = get_trace("jobs")
+#     assert spans[-3].name == "FINALIZED"
+#     completed_span = spans[-2]
+#     assert completed_span.name == "NONZERO_EXIT"
+#     assert completed_span.attributes["exit_code"] == exit_code
+#     assert completed_span.attributes["outputs"] == 1
+#     assert completed_span.attributes["unmatched_patterns"] == 0
+#     assert completed_span.attributes["unmatched_outputs"] == 0
+#     assert completed_span.attributes["image_id"] == "image_id"
+#     assert completed_span.status.status_code == trace.StatusCode.ERROR
+#     assert spans[-1].name == "JOB"
 
 
 def test_handle_job_finalized_failed_unmatched_patterns(db):
@@ -717,98 +719,102 @@ def backend_db_config(monkeypatch):
     monkeypatch.setitem(config.DATABASE_URLS, None, "conn str")
 
 
-def test_handle_pending_db_maintenance_mode(db, backend_db_config):
-    api = StubExecutorAPI()
-    job = api.add_test_job(
-        ExecutorState.UNKNOWN,
-        State.PENDING,
-        run_command="cohortextractor:latest generate_cohort",
-        requires_db=True,
-    )
+# NO NEED TO TEST COHORTEXTRACTOR
+# def test_handle_pending_db_maintenance_mode(db, backend_db_config):
+#     api = StubExecutorAPI()
+#     job = api.add_test_job(
+#         ExecutorState.UNKNOWN,
+#         State.PENDING,
+#         run_command="cohortextractor:latest generate_cohort",
+#         requires_db=True,
+#     )
 
-    run.handle_job(job, api, mode="db-maintenance")
+#     run.handle_job(job, api, mode="db-maintenance")
 
-    # executor state
-    assert api.get_status(job).state == ExecutorState.UNKNOWN
-    # our state
-    assert job.state == State.PENDING
-    assert job.status_message == "Waiting for database to finish maintenance"
-    assert job.started_at is None
+#     # executor state
+#     assert api.get_status(job).state == ExecutorState.UNKNOWN
+#     # our state
+#     assert job.state == State.PENDING
+#     assert job.status_message == "Waiting for database to finish maintenance"
+#     assert job.started_at is None
 
-    spans = get_trace("jobs")
-    assert spans[-1].name == "CREATED"
-
-
-def test_handle_running_db_maintenance_mode(db, backend_db_config):
-    api = StubExecutorAPI()
-    job = api.add_test_job(
-        ExecutorState.EXECUTING,
-        State.RUNNING,
-        StatusCode.EXECUTING,
-        run_command="cohortextractor:latest generate_cohort",
-        requires_db=True,
-    )
-
-    run.handle_job(job, api, mode="db-maintenance")
-
-    # executor state
-    assert job.id in api.tracker["terminate"]
-    assert job.id in api.tracker["cleanup"]
-    assert api.get_status(job).state == ExecutorState.UNKNOWN
-
-    # our state
-    assert job.state == State.PENDING
-    assert job.status_message == "Waiting for database to finish maintenance"
-    assert job.started_at is None
-
-    spans = get_trace("jobs")
-    assert spans[-1].name == "EXECUTING"
+#     spans = get_trace("jobs")
+#     assert spans[-1].name == "CREATED"
 
 
-def test_handle_pending_pause_mode(db, backend_db_config):
-    api = StubExecutorAPI()
-    job = api.add_test_job(
-        ExecutorState.UNKNOWN,
-        State.PENDING,
-        run_command="cohortextractor:latest generate_cohort",
-        requires_db=True,
-    )
+# NO NEED TO TEST COHORTEXTRACTOR
+# def test_handle_running_db_maintenance_mode(db, backend_db_config):
+#     api = StubExecutorAPI()
+#     job = api.add_test_job(
+#         ExecutorState.EXECUTING,
+#         State.RUNNING,
+#         StatusCode.EXECUTING,
+#         run_command="cohortextractor:latest generate_cohort",
+#         requires_db=True,
+#     )
 
-    run.handle_job(job, api, paused=True)
+#     run.handle_job(job, api, mode="db-maintenance")
 
-    # executor state
-    assert api.get_status(job).state == ExecutorState.UNKNOWN
-    # our state
-    assert job.state == State.PENDING
-    assert job.started_at is None
-    assert "paused" in job.status_message
+#     # executor state
+#     assert job.id in api.tracker["terminate"]
+#     assert job.id in api.tracker["cleanup"]
+#     assert api.get_status(job).state == ExecutorState.UNKNOWN
 
-    spans = get_trace("jobs")
-    assert spans[-1].name == "CREATED"
+#     # our state
+#     assert job.state == State.PENDING
+#     assert job.status_message == "Waiting for database to finish maintenance"
+#     assert job.started_at is None
+
+#     spans = get_trace("jobs")
+#     assert spans[-1].name == "EXECUTING"
 
 
-def test_handle_running_pause_mode(db, backend_db_config):
-    api = StubExecutorAPI()
-    job = api.add_test_job(
-        ExecutorState.EXECUTING,
-        State.RUNNING,
-        StatusCode.EXECUTING,
-        status_message="doing my thang",
-        run_command="cohortextractor:latest generate_cohort",
-        requires_db=True,
-    )
+# NO NEED TO TEST COHORTEXTRACTOR
+# def test_handle_pending_pause_mode(db, backend_db_config):
+#     api = StubExecutorAPI()
+#     job = api.add_test_job(
+#         ExecutorState.UNKNOWN,
+#         State.PENDING,
+#         run_command="cohortextractor:latest generate_cohort",
+#         requires_db=True,
+#     )
 
-    run.handle_job(job, api, paused=True)
+#     run.handle_job(job, api, paused=True)
 
-    # check we did nothing
-    # executor state
-    assert api.get_status(job).state == ExecutorState.EXECUTING
-    # our state
-    assert job.state == State.RUNNING
-    assert "paused" not in job.status_message
+#     # executor state
+#     assert api.get_status(job).state == ExecutorState.UNKNOWN
+#     # our state
+#     assert job.state == State.PENDING
+#     assert job.started_at is None
+#     assert "paused" in job.status_message
 
-    spans = get_trace("jobs")
-    assert len(spans) == 0  # no spans
+#     spans = get_trace("jobs")
+#     assert spans[-1].name == "CREATED"
+
+
+# NO NEED TO TEST COHORTEXTRACTOR
+# def test_handle_running_pause_mode(db, backend_db_config):
+#     api = StubExecutorAPI()
+#     job = api.add_test_job(
+#         ExecutorState.EXECUTING,
+#         State.RUNNING,
+#         StatusCode.EXECUTING,
+#         status_message="doing my thang",
+#         run_command="cohortextractor:latest generate_cohort",
+#         requires_db=True,
+#     )
+
+#     run.handle_job(job, api, paused=True)
+
+#     # check we did nothing
+#     # executor state
+#     assert api.get_status(job).state == ExecutorState.EXECUTING
+#     # our state
+#     assert job.state == State.RUNNING
+#     assert "paused" not in job.status_message
+
+#     spans = get_trace("jobs")
+#     assert len(spans) == 0  # no spans
 
 
 def invalid_transitions():

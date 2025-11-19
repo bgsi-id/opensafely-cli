@@ -37,7 +37,7 @@ def test_jupyter(run, no_user, monkeypatch, version):
     run.expect(["docker", "inspect", "test_jupyter"], returncode=1)
 
     run.expect(
-        ["docker", "image", "inspect", f"ghcr.io/opensafely-core/python:{used_version}"]
+        ["docker", "image", "inspect", f"624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/python:{used_version}"]
     )
     run.expect(
         [
@@ -59,7 +59,7 @@ def test_jupyter(run, no_user, monkeypatch, version):
             "--env",
             "JUPYTER_TOKEN=TOKEN",
             "--label=url=http://localhost:8888/?token=TOKEN",
-            f"ghcr.io/opensafely-core/python:{used_version}",
+            f"624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/python:{used_version}",
             "jupyter",
             "lab",
             "--ip=0.0.0.0",
@@ -70,7 +70,7 @@ def test_jupyter(run, no_user, monkeypatch, version):
             "--Application.log_level=ERROR",  # errors only please
         ]
     )
-    assert run_main(launch, f"{tool} --name test_jupyter") == 0
+    assert run_main(launch, f"{tool} --name test_jupyter --port 8888") == 0
     mock_open_browser.assert_called_with("http://localhost:8888/?token=TOKEN")
 
 
@@ -113,7 +113,7 @@ def test_rstudio(run, tmp_path, monkeypatch, gitconfig_exists, version):
             "docker",
             "image",
             "inspect",
-            f"ghcr.io/opensafely-core/rstudio:{used_version}",
+            f"624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/rstudio:{used_version}",
         ]
     )
     expected = [
@@ -141,7 +141,7 @@ def test_rstudio(run, tmp_path, monkeypatch, gitconfig_exists, version):
             + ":/home/rstudio/local-gitconfig",
         )
 
-    run.expect(expected + [f"ghcr.io/opensafely-core/rstudio:{used_version}"])
+    run.expect(expected + [f"624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/rstudio:{used_version}"])
 
     assert run_main(launch, f"{tool} --name test_rstudio") == 0
     mock_open_browser.assert_called_with("http://localhost:8787")

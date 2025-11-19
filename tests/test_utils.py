@@ -68,7 +68,7 @@ def test_run_docker_user_default(run, monkeypatch):
             "--label=opensafely",
             "--platform=linux/amd64",
             f"--volume={pathlib.Path.cwd()}://workspace",
-            "ghcr.io/opensafely-core/ehrql:v1",
+            "624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/ehrql:v1",
         ],
     )
     utils.run_docker([], "ehrql:v1", [])
@@ -87,7 +87,7 @@ def test_run_docker_user_linux(run, monkeypatch):
             "--platform=linux/amd64",
             "--user=uid:gid",
             f"--volume={pathlib.Path.cwd()}://workspace",
-            "ghcr.io/opensafely-core/ehrql:v1",
+            "624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/ehrql:v1",
         ],
     )
     utils.run_docker([], "ehrql:v1", [])
@@ -104,7 +104,7 @@ def test_run_docker_interactive(run, no_user):
             "--platform=linux/amd64",
             "--interactive",
             f"--volume={pathlib.Path.cwd()}://workspace",
-            "ghcr.io/opensafely-core/ehrql:v1",
+            "624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/ehrql:v1",
         ],
     )
     utils.run_docker([], "ehrql:v1", [], interactive=True)
@@ -124,7 +124,7 @@ def test_run_docker_interactive_tty(run, no_user, monkeypatch):
             "--interactive",
             "--tty",
             f"--volume={pathlib.Path.cwd()}://workspace",
-            "ghcr.io/opensafely-core/ehrql:v1",
+            "624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/ehrql:v1",
         ],
     )
     utils.run_docker([], "ehrql:v1", [], interactive=True)

@@ -24,7 +24,7 @@ def test_execute_main_args(run, no_user):
             "HOME=/tmp",
             "--cpus=2.0",
             "--memory=4G",
-            "ghcr.io/opensafely-core/ehrql:v1",
+            "624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/ehrql:v1",
             "foo",
             "bar",
             "baz",
@@ -52,7 +52,7 @@ def test_execute_main_entrypoint(run, no_user):
             "--entrypoint=/entrypoint",
             "--cpus=2.0",
             "--memory=4G",
-            "ghcr.io/opensafely-core/ehrql:v1",
+            "624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/ehrql:v1",
         ],
     )
     run_main(execute, "--entrypoint /entrypoint ehrql:v1")
@@ -82,7 +82,7 @@ def test_execute_main_env(run, no_user):
             "BAZ=1",
             "--cpus=2.0",
             "--memory=4G",
-            "ghcr.io/opensafely-core/ehrql:v1",
+            "624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/ehrql:v1",
         ],
     )
     run_main(execute, "-e=FOO -e BAR --env BAZ=1 ehrql:v1")
@@ -106,7 +106,7 @@ def test_execute_main_env_in_env(run, no_user):
             "HOME=/foo",
             "--cpus=2.0",
             "--memory=4G",
-            "ghcr.io/opensafely-core/ehrql:v1",
+            "624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/ehrql:v1",
         ],
     )
     run_main(execute, "-e OPENSAFELY_BACKEND=tpp -e HOME=/foo ehrql:v1")
@@ -134,7 +134,7 @@ def test_execute_main_user_cli_arg_overrides(default, run, monkeypatch):
             "HOME=/tmp",
             "--cpus=2.0",
             "--memory=4G",
-            "ghcr.io/opensafely-core/ehrql:v1",
+            "624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/ehrql:v1",
         ],
     )
     run_main(execute, "-u 1234:5678 ehrql:v1")
@@ -160,37 +160,37 @@ def test_execute_main_user_linux_disble(run, monkeypatch):
             "HOME=/tmp",
             "--cpus=2.0",
             "--memory=4G",
-            "ghcr.io/opensafely-core/ehrql:v1",
+            "624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/ehrql:v1",
         ],
     )
     run_main(execute, "-u None ehrql:v1")
 
+# KEMKES DO NOT HAVE STATA LICENSE
+# def test_execute_main_stata_license(run, monkeypatch, no_user):
+#     monkeypatch.setattr(execute, "get_stata_license", lambda: "LICENSE")
 
-def test_execute_main_stata_license(run, monkeypatch, no_user):
-    monkeypatch.setattr(execute, "get_stata_license", lambda: "LICENSE")
-
-    run.expect(["docker", "info"])
-    run.expect(
-        [
-            "docker",
-            "run",
-            "--rm",
-            "--init",
-            "--label=opensafely",
-            "--platform=linux/amd64",
-            "--interactive",
-            f"--volume={pathlib.Path.cwd()}://workspace",
-            "--env",
-            "OPENSAFELY_BACKEND=expectations",
-            "--env",
-            "HOME=/tmp",
-            "--env",
-            "STATA_LICENSE",
-            "--cpus=2.0",
-            "--memory=4G",
-            "ghcr.io/opensafely-core/stata-mp",
-            "analysis.do",
-        ],
-        env={"STATA_LICENSE": "LICENSE"},
-    )
-    run_main(execute, "stata-mp analysis.do")
+#     run.expect(["docker", "info"])
+#     run.expect(
+#         [
+#             "docker",
+#             "run",
+#             "--rm",
+#             "--init",
+#             "--label=opensafely",
+#             "--platform=linux/amd64",
+#             "--interactive",
+#             f"--volume={pathlib.Path.cwd()}://workspace",
+#             "--env",
+#             "OPENSAFELY_BACKEND=expectations",
+#             "--env",
+#             "HOME=/tmp",
+#             "--env",
+#             "STATA_LICENSE",
+#             "--cpus=2.0",
+#             "--memory=4G",
+#             "624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/stata-mp",
+#             "analysis.do",
+#         ],
+#         env={"STATA_LICENSE": "LICENSE"},
+#     )
+#     run_main(execute, "stata-mp analysis.do")

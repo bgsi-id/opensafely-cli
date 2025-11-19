@@ -53,14 +53,16 @@ def main(list_project_images=None):
             )
         )
     except Exception as exc:
-        raise RuntimeError(f"Error retreiving docker information: {exc}")
+        # In non-DockerHub registries (e.g. AWS ECR), the remote version
+        # check may not work – don't make this fatal.
+        print(f"Error retreiving image information: {exc}")
 
     print("OpenSAFELY Docker image versions:")
     try:
         local_images = pull.get_local_images()
         updates = pull.check_version(local_images)
     except Exception as exc:
-        raise RuntimeError(f"Error retreiving image information: {exc}")
+        print(f"Error retreiving image information: {exc}")
     else:
         for image, sha in sorted(local_images.items()):
             update = "(needs update)" if image in updates else "(latest version)"

@@ -38,33 +38,33 @@ def test_get_action_specification_ehrql_has_output_flag():
         == "ehrql:v1 generate-dataset dataset.py --output=output/dataset.csv"
     )
 
+# NO NEED TO TEST COHORTEXTRACTOR
+# @pytest.mark.skipif(
+#     sys.platform.startswith("win"),
+#     reason="ActionSpecification is only used to build commands for Docker",
+# )
+# def test_get_action_specification_for_cohortextractor_generate_cohort_action():
+#     config = Pipeline.build(
+#         **{
+#             "version": 3,
+#             "expectations": {"population_size": 1000},
+#             "actions": {
+#                 "generate_cohort": {
+#                     "run": "cohortextractor:latest generate_cohort",
+#                     "outputs": {"highly_sensitive": {"cohort": "output/input.csv"}},
+#                 }
+#             },
+#         }
+#     )
 
-@pytest.mark.skipif(
-    sys.platform.startswith("win"),
-    reason="ActionSpecification is only used to build commands for Docker",
-)
-def test_get_action_specification_for_cohortextractor_generate_cohort_action():
-    config = Pipeline.build(
-        **{
-            "version": 3,
-            "expectations": {"population_size": 1000},
-            "actions": {
-                "generate_cohort": {
-                    "run": "cohortextractor:latest generate_cohort",
-                    "outputs": {"highly_sensitive": {"cohort": "output/input.csv"}},
-                }
-            },
-        }
-    )
+#     action_spec = get_action_specification(
+#         config, "generate_cohort", using_dummy_data_backend=True
+#     )
 
-    action_spec = get_action_specification(
-        config, "generate_cohort", using_dummy_data_backend=True
-    )
-
-    assert (
-        action_spec.run
-        == """cohortextractor:latest generate_cohort --expectations-population=1000 --output-dir=output"""
-    )
+#     assert (
+#         action_spec.run
+#         == """cohortextractor:latest generate_cohort --expectations-population=1000 --output-dir=output"""
+#     )
 
 
 @pytest.mark.skipif(

@@ -128,7 +128,7 @@ def get_local_images():
         [
             "docker",
             "images",
-            "ghcr.io/opensafely-core/*",  # this excludes dev builds
+            "624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/*",  # this excludes dev builds
             "--filter",
             "label=org.opensafely.action",
             "--filter",
@@ -148,7 +148,7 @@ def get_local_images():
         if "<none>" in line:
             continue
 
-        line = line.replace("ghcr.io/opensafely-core/", "")
+        line = line.replace("624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/", "")
 
         image, sha = line.split("=", 1)
         images[image] = sha
@@ -182,7 +182,7 @@ def dockerhub_api(path):
     """Get the current sha for a tag from a docker registry."""
     global token
 
-    url = f"https://ghcr.io/{path}"
+    url = f"https://624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/{path}"
 
     # Docker API requires auth token, even for public resources.
     # However, we can reuse a public token.

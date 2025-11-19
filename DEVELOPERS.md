@@ -1,4 +1,4 @@
-# Developer docs
+# FORK VERSION FOR INDONESIA MoH
 
 ## Vendoring
 
@@ -69,6 +69,10 @@ If no semantic commit is found since the last tag, a new version
 will not be released.
 
 ## Local Builds
+Login to Opensafely private ECR
+```
+aws ecr get-login-password --region ap-southeast-3 | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query "Account" --output text ).dkr.ecr.ap-southeast-3.amazonaws.com/opensafely
+```
 
 Making a local build can be useful for testing and QA purposes.
 This is done by running:

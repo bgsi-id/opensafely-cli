@@ -9,7 +9,7 @@ DESCRIPTION = (
 # images and jobs can be selected with this
 label_filter = "label=org.opencontainers.image.vendor=OpenSAFELY"
 # busy box doesn't have the vendor, so use the image name
-busybox_filter = "ancestor=ghcr.io/opensafely-core/busybox"
+busybox_filter = "ancestor=624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/busybox"
 # catch all prefix for any old jobs lying around
 name_filter = "name=os-job-"
 # volumes don't currently have labels, so use name prefix
