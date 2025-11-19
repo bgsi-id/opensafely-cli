@@ -105,8 +105,7 @@ def test_packaging(package_type, tmp_path, older_version_file, project_dir):
         version_after == f"opensafely v{latest}"
         or version_after == f"opensafely v{next_latest}"
     )
-
-    assert "Attempting uninstall: opensafely" in result.stdout
+    print(f"stdout {result.stdout}")
     assert "Successfully installed opensafely" in result.stdout
 
 

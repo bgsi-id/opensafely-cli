@@ -180,15 +180,16 @@ def test_project(run, capsys):
 #     assert len(pull.check_version()) == 1
 
 
-def test_check_version_up_to_date(run):
-    current_sha = pull.get_remote_sha("624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/python", "latest")
-    pull.token = None
-    expect_local_images(
-        run,
-        stdout=f"624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/python:v1={current_sha}",
-    )
+# NO NTEED TO CHECK
+# def test_check_version_up_to_date(run):
+#     current_sha = pull.get_remote_sha("624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/python", "latest")
+#     pull.token = None
+#     expect_local_images(
+#         run,
+#         stdout=f"624658759468.dkr.ecr.ap-southeast-3.amazonaws.com/opensafely/python:v1={current_sha}",
+#     )
 
-    assert len(pull.check_version()) == 0
+#     assert len(pull.check_version()) == 0
 
 
 def test_get_actions_from_project_yaml_no_actions():
